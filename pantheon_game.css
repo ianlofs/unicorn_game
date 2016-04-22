@@ -1,0 +1,12 @@
+.subcanvs {
+  position: absolute;
+}
+
+body {
+  margin: 0;
+}
+
+.wrapper {
+  margin: 0;
+  position: relative;
+}
