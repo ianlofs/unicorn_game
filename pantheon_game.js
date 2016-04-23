@@ -8,24 +8,25 @@ var SCALE_FACTOR = 2;
 window.APP = window.APP   || {};
 
 APP.gameCanvas = document.getElementById('game_container');
+
+
 APP.gameCanvas.height = window.innerHeight;
 APP.gameCanvas.width = window.innerWidth;
 APP.context = APP.gameCanvas.getContext('2d');
 
 APP.imagesLoaded = false;
 APP.keysPressed = {};
-APP.boltsArr = [];
 
 APP.init = function() {
   APP.setup.addListeners();
   APP.setup.loadImages(APP.setup.initObjects, APP.play);
 };
-/*
+
 APP.pause = function() {
-  window.cancelAnimationFrame(APP.animationFrameLoop);
+  window.cancelAnimationFrame(APP.core.animationFrameLoop);
   APP.isRunning = false;
 };
-*/
+
 APP.play = function() {
   if(!APP.isRunning) {
     APP._then = Date.now();
@@ -39,7 +40,7 @@ APP.core = {
     APP.core.setDelta();
     APP.core.update();
     APP.core.render();
-    APP.core.animationFrame = window.requestAnimationFrame(APP.core.frame);
+    APP.core.animationFrameLoop = window.requestAnimationFrame(APP.core.frame);
   },
   setDelta: function() {
     APP.core.now = Date.now();
@@ -56,8 +57,8 @@ APP.core = {
     APP.context.fillRect(0, 0,APP.gameCanvas.width, APP.gameCanvas.height);
   },
   render: function() {
-    APP.core.clear();
     if (APP.imagesLoaded) {
+      APP.core.clear();
       APP.bolts.draw();
       APP.unicorn.draw();
       APP.enemies.draw();
@@ -93,7 +94,7 @@ APP.setup = {
       APP.keysPressed[event.keyCode] = true;
       if (APP.keysPressed[FIRE_CODE]) {
         APP.bolts.fireBolt();
-        APP.enemies.all.push(new Cerbere(500, 500));
+        APP.enemies.all.push(new Cerbere());
       }
     });
     window.addEventListener('keyup', function(event) {
@@ -101,6 +102,8 @@ APP.setup = {
     });
   },
   initObjects: function() {
+
+    /* ------------------------- setup player obeject unicorn ----------------------------*/
     APP.unicorn = {
       y: 230,
       x: 75,
@@ -114,7 +117,7 @@ APP.setup = {
       update: function() {
         // bounds checking
         var velocity = this.speed * APP.core.delta;
-        if (this.y < 0) { this.y = 0; console.log('here')}
+        if (this.y < 0) { this.y = 0; }
         if (this.y > APP.gameCanvas.height - this.height) { this.y = APP.gameCanvas.height - this.height; }
         if (this.x < 0) { this.x =0; }
         if (this.x > APP.gameCanvas.width - this.width){ this.x = APP.gameCanvas.width - this.width; }
@@ -140,8 +143,8 @@ APP.setup = {
       },
       draw: function() {
         APP.context.drawImage(APP.images.unicorn,
-          this.frameIndex * APP.images.unicorn.width / this.numFrames,
-          0, 240, 160,
+          this.frameIndex * APP.images.unicorn.width / this.numFrames, //draw part of the sprite-sheet
+          0, 240, 160, // each frame in sprite-sheet is 240 px wide, and 160px tall
           this.x,
           this.y,
           this.width,
@@ -149,47 +152,77 @@ APP.setup = {
       }
     };
 
-    APP.bolts = {
-      speed: 700,
-      width: 40,
-      height: 19,
-      sound: new Audio('laser_blast.mp3'),
-      level: 2,
-      all: [],
-      fireBolt: function() {
+    /* ------------------------- setup game objects ----------------------------*/
+    // pantheon logo bullets
+    APP.bolts = new APP.GameObjectFactory(40, 19, 700, 2);
+    APP.bolts.sound = new Audio('laser_blast.mp3');
+    APP.bolts.fireBolt = function() {
         this.all.push(new Bolt());
         this.sound.pause();
         this.sound.currentTime = 0;
         this.sound.play();
-      },
-      update: function () {
-        for (var i=0; i < this.all.length; i++) {
-          this.all[i].update();
-        }
-      },
-      draw: function() {
-        for (var i=0; i < this.all.length; i++) {
-          this.all[i].render();
-        }
-      }
     };
+    // enemies in the game
+    APP.enemies = new APP.GameObjectFactory(48, 50, 200, 2);
+    // wordpress and drupal logos, "powerUps"
+    APP.powerUps = new APP.GameObjectFactory(100, 100, 200, 2);
+  }
 
-    APP.enemies = {
-      all: [],
-      width: 48,
-      height: 50,
-      level: 1,
-      speed: 100,
-      update: function() {
-        for (var i=0; i < this.all.length; i++) {
-          this.all[i].update();
-        }
-      },
-      draw: function() {
-        for (var i=0; i < this.all.length; i++) {
-          this.all[i].render();
-        }
-      }
+}
+
+// returns a new object with basic draw and update methods, can be extended once instantiated
+APP.GameObjectFactory = function (width, height, speed, level) {
+  this.all = [];
+  this.width = width;
+  this.height = height;
+  this.level = level || 1;
+  this.speed = speed || 200;
+}
+
+APP.GameObjectFactory.prototype = {
+  update: function() {
+    var instance = this;
+    instance.all.map(function (obj) {
+      obj.update();
+    });
+  },
+  draw: function() {
+    var instance = this;
+    instance.all.map(function(obj) {
+      obj.render();
+    });
+  }
+}
+
+// abstract class for game objects
+function GameObject(x, y, factoryLevel, factoryWidth, factoryHeight) {
+  this.x = x;
+  this.y = y;
+  this.level = factoryLevel;
+  console.log(factoryLevel);
+  this.width = factoryWidth * this.level;
+  this.height = factoryHeight * this.level;
+  this.hitCount = 0;
+}
+
+function Bolt() {
+  // Call the parent constructor, making sure (using Function#call)
+  // that "this" is set correctly during the call
+  // console.log(APP.bolts.level);
+  GameObject.call(this, APP.unicorn.x + APP.unicorn.width, APP.unicorn.y,
+    APP.bolts.level, APP.bolts.width, APP.bolts.height);
+}
+Bolt.prototype = {
+  update: function() {
+    this.x += (APP.bolts.speed * APP.core.delta);
+  },
+  render: function(boltIndex) {
+    // only draw if the x is within gameCanvas
+    if (!(this.x > APP.gameCanvas.width)) {
+      APP.context.drawImage(APP.images.bolt, this.x, this.y, this.width, this.height);
+    } else {
+      // remove from bolts so the GC can get rid of them
+      APP.bolts.all.splice(boltIndex, 1);
     }
   }
 }
@@ -197,14 +230,10 @@ APP.setup = {
 // Cerbere is Hades' mythical three headed dog. They are the base
 // enemies in this game.
 function Cerbere(x, y) {
-  this.x = x;
-  this.y = y;
+  GameObject.call(this, x || APP.gameCanvas.width - APP.enemies.width, y || Math.random() * APP.gameCanvas.height,
+    APP.enemies.level, APP.enemies.width, APP.enemies.height)
   this.xDir = 1;
   this.yDir = 1;
-  this.hitCount = 0;
-  this.level = APP.enemies.level;
-  this.width = APP.enemies.width * this.level;
-  this.height = APP.enemies.height * this.level;
 }
 
 Cerbere.prototype = {
@@ -236,26 +265,6 @@ Cerbere.prototype = {
     }
   }
 }
-
-function Bolt() {
-  this.x = APP.unicorn.x + APP.unicorn.width - 25;
-  this.y = APP.unicorn.y;
-}
-
-Bolt.prototype = {
-  update: function() {
-    this.x += (APP.bolts.speed * APP.core.delta);
-  },
-  render: function(boltIndex) {
-    // only draw if the x is within gameCanvas
-    if (!(this.x > APP.gameCanvas.width)) {
-      APP.context.drawImage(APP.images.bolt, this.x, this.y, APP.bolts.width * APP.bolts.level, APP.bolts.height * APP.bolts.level);
-    } else {
-      // remove from boltsArr so the GC can get rid of them
-      APP.bolts.all.splice(boltIndex, 1);
-    }
-  }
-};
 
 APP.init();
 
