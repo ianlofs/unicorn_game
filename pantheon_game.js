@@ -48,6 +48,7 @@ APP.core = {
     APP.core.then = APP.core.now;
   },
   update: function() {
+    APP.collisionDetector(APP.bolts.all, APP.enemies.all);
     APP.unicorn.update();
     APP.bolts.update();
     APP.enemies.update();
@@ -94,7 +95,7 @@ APP.setup = {
       APP.keysPressed[event.keyCode] = true;
       if (APP.keysPressed[FIRE_CODE]) {
         APP.bolts.fireBolt();
-        APP.enemies.all.push(new Cerbere());
+        APP.enemies.all.push(new APP.Cerbere());
       }
     });
     window.addEventListener('keyup', function(event) {
@@ -103,7 +104,7 @@ APP.setup = {
   },
   initObjects: function() {
 
-    /* ------------------------- setup player obeject unicorn ----------------------------*/
+    /* ------------------------- setup player object unicorn ----------------------------*/
     APP.unicorn = {
       y: 230,
       x: 75,
@@ -114,7 +115,12 @@ APP.setup = {
       frameIndex: 0,
       tickCount: 0,
       ticksPerFrame: 8,
+      numLives: 3,
       update: function() {
+        if (this.numLives === 0) {
+          APP.init();
+        }
+
         // bounds checking
         var velocity = this.speed * APP.core.delta;
         if (this.y < 0) { this.y = 0; }
@@ -157,7 +163,7 @@ APP.setup = {
     APP.bolts = new APP.GameObjectFactory(40, 19, 700, 2);
     APP.bolts.sound = new Audio('laser_blast.mp3');
     APP.bolts.fireBolt = function() {
-        this.all.push(new Bolt());
+        this.all.push(new APP.Bolt());
         this.sound.pause();
         this.sound.currentTime = 0;
         this.sound.play();
@@ -168,6 +174,23 @@ APP.setup = {
     APP.powerUps = new APP.GameObjectFactory(100, 100, 200, 2);
   }
 
+}
+
+APP.collisionDetector = function(gameObjectArr1, gameObjectArr2) {
+  for (var obj in gameObjectArr1) {
+    for (var gameObj in gameObjectArr2) {
+      if (gameObjectArr1[obj].x + gameObjectArr1[obj].width < gameObjectArr2[gameObj].x ||
+          gameObjectArr1[obj].x > gameObjectArr2[gameObj].x + gameObjectArr2[obj].width ||
+          gameObjectArr1[obj].y + gameObjectArr1[obj].height < gameObjectArr2[gameObj].y ||
+          gameObjectArr1[obj].y > gameObjectArr2[gameObj].y + gameObjectArr2[gameObj].y)
+      {
+        // no collisions
+      } else {
+        gameObjectArr1.splice(obj, 1);
+        gameObjectArr2.splice(gameObj, 1);
+      }
+    }
+  }
 }
 
 // returns a new object with basic draw and update methods, can be extended once instantiated
@@ -195,79 +218,82 @@ APP.GameObjectFactory.prototype = {
 }
 
 // abstract class for game objects
-function GameObject(x, y, factoryLevel, factoryWidth, factoryHeight) {
+APP.GameObject = function(x, y, factoryLevel, factoryWidth, factoryHeight) {
   this.x = x;
   this.y = y;
   this.level = factoryLevel;
-  console.log(factoryLevel);
   this.width = factoryWidth * this.level;
   this.height = factoryHeight * this.level;
   this.hitCount = 0;
 }
 
-function Bolt() {
-  // Call the parent constructor, making sure (using Function#call)
-  // that "this" is set correctly during the call
-  // console.log(APP.bolts.level);
-  GameObject.call(this, APP.unicorn.x + APP.unicorn.width, APP.unicorn.y,
-    APP.bolts.level, APP.bolts.width, APP.bolts.height);
-}
-Bolt.prototype = {
+APP.GameObject.prototype = {
   update: function() {
-    this.x += (APP.bolts.speed * APP.core.delta);
+    throw new Error('Update not implemented');
   },
-  render: function(boltIndex) {
-    // only draw if the x is within gameCanvas
-    if (!(this.x > APP.gameCanvas.width)) {
-      APP.context.drawImage(APP.images.bolt, this.x, this.y, this.width, this.height);
-    } else {
-      // remove from bolts so the GC can get rid of them
-      APP.bolts.all.splice(boltIndex, 1);
-    }
+  render: function() {
+    throw new Error('Render not implemented');
   }
 }
+
+APP.Bolt = function() {
+  // Call the parent constructor, making sure (using Function#call)
+  // that "this" is set correctly during the call
+  APP.GameObject.call(this, APP.unicorn.x + APP.unicorn.width, APP.unicorn.y,
+    APP.bolts.level, APP.bolts.width, APP.bolts.height);
+}
+APP.Bolt.prototype = Object.create(APP.GameObject.prototype);
+APP.Bolt.prototype.constructor = APP.Bolt;
+APP.Bolt.prototype.update = function() {
+  this.x += (APP.bolts.speed * APP.core.delta);
+};
+APP.Bolt.prototype.render = function(boltIndex) {
+  // only draw if the x is within gameCanvas
+  if (!(this.x > APP.gameCanvas.width)) {
+    APP.context.drawImage(APP.images.bolt, this.x, this.y, this.width, this.height);
+  } else {
+    // remove from bolts so the GC can get rid of them
+    APP.bolts.all.splice(boltIndex, 1);
+  }
+};
 
 // Cerbere is Hades' mythical three headed dog. They are the base
 // enemies in this game.
-function Cerbere(x, y) {
-  GameObject.call(this, x || APP.gameCanvas.width - APP.enemies.width, y || Math.random() * APP.gameCanvas.height,
-    APP.enemies.level, APP.enemies.width, APP.enemies.height)
+APP.Cerbere = function(x, y) {
+  APP.GameObject.call(this, x || APP.gameCanvas.width - APP.enemies.width, y || Math.random() * APP.gameCanvas.height,
+    APP.enemies.level, APP.enemies.width, APP.enemies.height);
   this.xDir = 1;
   this.yDir = 1;
+  this.__posUpdatLevel__ = 50;
+  this.posUpdatLevel = 50;
 }
-
-Cerbere.prototype = {
-  update: function() {
-    if (Math.random() * 40 < 1) {
-      this.xDir = Math.round(Math.random()) * 2 - 1;
-      this.yDir = Math.round(Math.random()) * 2 - 1;
-    }
-    if (this.y < 0) { this.y = 0; this.yDir = 1 }
-    if (this.y > APP.gameCanvas.height - this.height) {
-      this.y = APP.gameCanvas.height - this.height;
-      this.yDir = -1;
-    }
-    if (this.x < 0) { this.x = 0; this.xDir = 1; }
-    if (this.x > APP.gameCanvas.width - this.width){
-      this.x = APP.gameCanvas.width - this.width;
-      this.XDir = -1;
-    }
-
-    this.x += this.xDir * (APP.enemies.speed * APP.core.delta);
-    this.y += this.yDir * (APP.enemies.speed * APP.core.delta);
-  },
-  render: function(enemyIndex) {
-    if (!(this.x > APP.gameCanvas.width)) {
-      APP.context.drawImage(APP.images.cerbere, this.x, this.y, APP.enemies.width * this.level, APP.enemies.height * this.level);
-    } else {
-      // remove from boltsArr so the GC can get rid of them
-      APP.enemies.all.splice(enemyIndex, 1);
-    }
+APP.Cerbere.prototype = Object.create(APP.GameObject.prototype);
+APP.Cerbere.prototype.constructor = APP.Cerbere;
+APP.Cerbere.prototype.update = function() {
+  if (this.y < 0) { this.y = 0; this.yDir = 1 }
+  if (this.y > APP.gameCanvas.height - this.height) {
+    this.y = APP.gameCanvas.height - this.height;
+    this.yDir = -1;
   }
-}
+  if (this.x < 0) { this.x = 0; this.xDir = 1; }
+  if (this.x > APP.gameCanvas.width - this.width){
+    this.x = APP.gameCanvas.width - this.width;
+    this.XDir = -1;
+  }
+  this.__posUpdatLevel__--;
+  if (this.__posUpdatLevel__ === 0) {
+    this.__posUpdatLevel__ = this.posUpdatLevel;
+    if (this.y < APP.unicorn.y) { this.yDir = 1; }
+    if (this.y > APP.unicorn.y) { this.yDir = -1; }
+    if (this.x < APP.unicorn.x) { this.xDir = 1; }
+    if (this.x > APP.unicorn.x) {this.xDir = -1; }
+  }
+
+  this.x += this.xDir * (APP.enemies.speed * APP.core.delta);
+  this.y += this.yDir * (APP.enemies.speed * APP.core.delta);
+};
+APP.Cerbere.prototype.render = function(enemyIndex) {
+  APP.context.drawImage(APP.images.cerbere, this.x, this.y, APP.enemies.width * this.level, APP.enemies.height * this.level);
+};
 
 APP.init();
-
-setInterval(function() {
-  APP.enemies.level++;
-}, 10000);

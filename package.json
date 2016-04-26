@@ -1,0 +1,26 @@
+{
+  "name": "pantheon_game",
+  "version": "1.0.0",
+  "description": "a little javascript/html5 canvas game",
+  "main": "pantheon_game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ianlofs/unicorn_game.git"
+  },
+  "keywords": [
+    "html5",
+    "canvas"
+  ],
+  "author": "Ian Lofgren",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ianlofs/unicorn_game/issues"
+  },
+  "homepage": "https://github.com/ianlofs/unicorn_game#readme",
+  "dependencies": {
+    "webpack": "^1.13.0"
+  }
+}
