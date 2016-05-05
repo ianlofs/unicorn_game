@@ -108,9 +108,10 @@ APP.setup = {
     // pantheon logo bullets
     APP.bolts = new GameObjectFactory(APP.gameCanvas.width, APP.gameCanvas.height,
                                       40, 19, APP.images.bolt);
+    APP.bolts.level = 2;                                  
     APP.bolts.sound = new Audio('./assets/laser_blast.mp3');
     APP.bolts.fireBolt = function() {
-        this.all.push(new Bolt(APP.unicorn.x + APP.unicorn.width, APP.unicorn.y, 2, APP.bolts.width, APP.bolts.height, 700));
+        this.all.push(new Bolt(APP.unicorn.x + APP.unicorn.width, APP.unicorn.y, APP.bolts.level, APP.bolts.width, APP.bolts.height, 700));
         this.sound.pause();
         this.sound.currentTime = 0;
         this.sound.play();
