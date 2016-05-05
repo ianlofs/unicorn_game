@@ -21,6 +21,6 @@ Go to localhost:8080 and click on app, the game will then start up.
 Arrow keys control the movement of the unicorn and spacebar is fire. 
 
 #### Game play
-The enemies start in a ramdom spot on the right half of the screen and reorient their direction of motion towards the player every 50 frames. 
+Cerberus' start in a ramdom spot on the right half of the screen and reorient their direction of motion towards the player every 50 frames. Just shoot the Cerberus'. 
 
-Just shoot the enemies, score and lives for the player are up next, maybe a boss of some sort after that.
+Score and lives for the player are up next, maybe a boss of some sort after that.
