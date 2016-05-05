@@ -1,7 +1,7 @@
 module.exports = {
-  context: __dirname + '/',
+  context: __dirname,
   name: 'pantheon_game',
-  entry: './app/pantheon_game.js',
+  entry: ['./app/pantheon_game.js', './app/index.html'],
   devtool: 'source-map',
   output: {
     filename: 'bundle.js',
