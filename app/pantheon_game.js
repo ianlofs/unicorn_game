@@ -148,6 +148,6 @@ APP.init();
 setInterval(() => {
   APP.enemies.all.push(new Cerbere((Math.random() * APP.gameCanvas.width/2) + APP.gameCanvas.width/2,
                                    Math.random() * APP.gameCanvas.height,
-                                   2, APP.enemies.width, APP.enemies.height, 200,
+                                   2, APP.enemies.width, APP.enemies.height, 500,
                                    APP.gameCanvas.width, APP.gameCanvas.height));
 }, 1000);
