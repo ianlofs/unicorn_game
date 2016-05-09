@@ -1,12 +1,12 @@
 module.exports = {
-  context: __dirname,
+  context: __dirname + '/app/',
   name: 'pantheon_game',
-  entry: ['./app/pantheon_game.js', './app/index.html'],
+  entry: './static/js/pantheon_game.js',
   devtool: 'source-map',
   output: {
     filename: 'bundle.js',
     path: __dirname,
-    publicPath: "/build/"
+    publicPath: "/public/"
   },
   module: {
     loaders: [

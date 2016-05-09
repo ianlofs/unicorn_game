@@ -10,3 +10,10 @@ body {
   margin: 0;
   position: relative;
 }
+
+.score {
+  color: white;
+  z-index: 999;
+  height: 100px;
+  width: 100px;
+}

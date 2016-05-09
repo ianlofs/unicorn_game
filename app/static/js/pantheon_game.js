@@ -1,11 +1,10 @@
 import GameObjectFactory from './gameObjectFactory';
 import { FIRE_CODE } from './constants';
 import { Unicorn, Bolt, Cerbere } from './GameObject';
+
 window.APP = window.APP   || {};
 
-
 APP.gameCanvas = document.getElementById('game_container');
-
 
 APP.gameCanvas.height = window.innerHeight;
 APP.gameCanvas.width = window.innerWidth;
@@ -13,6 +12,8 @@ APP.context = APP.gameCanvas.getContext('2d');
 
 APP.imagesLoaded = false;
 APP.keysPressed = {};
+APP.scoreDiv = document.getElementsByClassName('score');
+APP.score = 0;
 
 APP.init = function() {
   APP.setup.addListeners();
@@ -20,6 +21,7 @@ APP.init = function() {
 };
 
 APP.pause = function() {
+  console.log('pause');
   window.cancelAnimationFrame(APP.core.animationFrameLoop);
   APP.isRunning = false;
 };
@@ -46,12 +48,13 @@ APP.core = {
   },
   update: function() {
     APP.collisionDetector(APP.bolts.all, APP.enemies.all);
+    APP.collidesWithPlayer(APP.unicorn, APP.enemies.all);
     APP.unicorn.update(APP.core.delta, APP.gameCanvas.width, APP.gameCanvas.height, APP.keysPressed);
     APP.bolts.update(APP.core.delta);
     APP.enemies.update(APP.core.delta, APP.unicorn);
   },
   clear: function() {
-    APP.context.fillStyle = 'rgba(0,0,0)';
+    APP.context.fillStyle = 'black';
     APP.context.fillRect(0, 0,APP.gameCanvas.width, APP.gameCanvas.height);
   },
   render: function() {
@@ -60,9 +63,24 @@ APP.core = {
       APP.bolts.draw(APP.context);
       APP.unicorn.render(APP.context, APP.images.unicorn);
       APP.enemies.draw(APP.context);
+      APP.drawStats();
+    }
+    if (APP.unicorn.lives === 0){
+      APP.context.font = '72px serif';
+      APP.context.fillStyle = 'white';
+      APP.context.fillText('GAME OVER', APP.gameCanvas.width / 2 - 150, APP.gameCanvas.height / 2 - 50);
+      console.log(window);
+      window.cancelAnimationFrame(APP.core.animationFrameLoop);
     }
   }
 };
+
+APP.drawStats = function() {
+  APP.context.font = "32px serif";
+  APP.context.fillStyle = 'white';
+  APP.context.fillText('Score: ' + APP.score, 10, 50);
+  APP.context.fillText('Lives: ' + APP.unicorn.lives, APP.gameCanvas.width - 150, 50)
+}
 
 APP.setup = {
   loadImages: function(initObjects, play) {
@@ -92,7 +110,6 @@ APP.setup = {
       APP.keysPressed[event.keyCode] = true;
       if (APP.keysPressed[FIRE_CODE]) {
         APP.bolts.fireBolt();
-        //APP.enemies.all.push(new APP.Cerbere());
       }
     });
     window.addEventListener('keyup', function(event) {
@@ -103,12 +120,13 @@ APP.setup = {
 
     /* ------------------------- setup player object unicorn ----------------------------*/
     APP.unicorn = new Unicorn();
+    APP.unicorn.lives = 10;
 
     /* ------------------------- setup game objects ----------------------------*/
     // pantheon logo bullets
     APP.bolts = new GameObjectFactory(APP.gameCanvas.width, APP.gameCanvas.height,
                                       40, 19, APP.images.bolt);
-    APP.bolts.level = 2;                                  
+    APP.bolts.level = 2;
     APP.bolts.sound = new Audio('./assets/laser_blast.mp3');
     APP.bolts.fireBolt = function() {
         this.all.push(new Bolt(APP.unicorn.x + APP.unicorn.width, APP.unicorn.y, APP.bolts.level, APP.bolts.width, APP.bolts.height, 700));
@@ -116,7 +134,6 @@ APP.setup = {
         this.sound.currentTime = 0;
         this.sound.play();
     };
-    // enemies in the game, , 40, 19, APP.images.bolt
     APP.enemies = new GameObjectFactory(APP.gameCanvas.width, APP.gameCanvas.height,
                                         48, 50, APP.images.cerbere);
     // wordpress and drupal logos, "powerUps"
@@ -125,16 +142,28 @@ APP.setup = {
 
 }
 
+APP.collidesWithPlayer = function(playerObj, enemies) {
+  return enemies.map((enemy, i) => {
+    if (playerObj.x + playerObj.width < enemy.x || playerObj.x > enemy.x + enemy.width ||
+        playerObj.y + playerObj.height < enemy.y || playerObj.y > enemy.y + enemy.y) {
+      // no collisions
+    } else {
+      --APP.unicorn.lives;
+      enemies.splice(i, 1);
+    }
+  });
+}
+
 APP.collisionDetector = function(gameObjectArr1, gameObjectArr2) {
   for (var obj in gameObjectArr1) {
     for (var gameObj in gameObjectArr2) {
       if (gameObjectArr1[obj].x + gameObjectArr1[obj].width < gameObjectArr2[gameObj].x ||
           gameObjectArr1[obj].x > gameObjectArr2[gameObj].x + gameObjectArr2[gameObj].width ||
           gameObjectArr1[obj].y + gameObjectArr1[obj].height < gameObjectArr2[gameObj].y ||
-          gameObjectArr1[obj].y > gameObjectArr2[gameObj].y + gameObjectArr2[gameObj].y)
-      {
+          gameObjectArr1[obj].y > gameObjectArr2[gameObj].y + gameObjectArr2[gameObj].y) {
         // no collisions
       } else {
+        ++APP.score;
         gameObjectArr1.splice(obj, 1);
         gameObjectArr2.splice(gameObj, 1);
         break;
