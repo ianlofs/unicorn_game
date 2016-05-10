@@ -3,17 +3,16 @@
 
 This is a little javascript and html5 canvas game. This definitely only works in Chrome right now.
 
+To get started you must have node installed:
 
-To get started you must have node as well as webpack and webpack-dev-server installed globally:
+Then open up a terminal and type:
 
 ```sh
-npm install -g webpack
-npm install -g webpack-dev-server
 npm install
-npm start
+npm run dev
 ```
 
-Go to localhost:8080, click on app. The game will then start up.
+Go to localhost:8080, The game will then start up.
 
 #### Controls
 Arrow keys control the movement of the unicorn and spacebar is fire. 
