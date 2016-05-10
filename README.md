@@ -1,3 +1,4 @@
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 ##unicorn_game
 
 This is a little javascript and html5 canvas game. This definitely only works in Chrome right now.
