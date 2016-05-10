@@ -1,12 +1,11 @@
 module.exports = {
-  context: __dirname + '/app/',
+  context: __dirname,
   name: 'pantheon_game',
-  entry: './static/js/pantheon_game.js',
-  devtool: 'source-map',
+  entry: './app/js/index.js',
   output: {
     filename: 'bundle.js',
-    path: __dirname,
-    publicPath: "/public/"
+    path: __dirname + '/dist/',
+    publicPath: './'
   },
   module: {
     loaders: [
@@ -17,10 +16,6 @@ module.exports = {
         query: {
           presets: ['es2015']
         }
-      },
-      {
-        test: /\.html$/,
-        loader: 'html-loader'
       },
       {
         test: /\.css$/,

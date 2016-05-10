@@ -1,3 +1,5 @@
+require('../css/pantheon_game.css');
+
 import GameObjectFactory from './gameObjectFactory';
 import { FIRE_CODE } from './constants';
 import { Unicorn, Bolt, Cerbere } from './GameObject';
@@ -65,13 +67,6 @@ APP.core = {
       APP.enemies.draw(APP.context);
       APP.drawStats();
     }
-    if (APP.unicorn.lives === 0){
-      APP.context.font = '72px serif';
-      APP.context.fillStyle = 'white';
-      APP.context.fillText('GAME OVER', APP.gameCanvas.width / 2 - 150, APP.gameCanvas.height / 2 - 50);
-      console.log(window);
-      window.cancelAnimationFrame(APP.core.animationFrameLoop);
-    }
   }
 };
 
@@ -100,10 +95,10 @@ APP.setup = {
         }
       }
     }
-   APP.images.unicorn.src = 'assets/sprite-unicorn.png';
-   APP.images.cerbere.src = 'assets/Cerbere.png';
-   APP.images.hades.src = 'assets/Hades_T.png';
-   APP.images.bolt.src = 'assets/pantheon-logo-symbol.svg';
+   APP.images.unicorn.src = require('../assets/sprite-unicorn.png');
+   APP.images.cerbere.src = require('../assets/Cerbere.png');
+   APP.images.hades.src = require('../assets/Hades_T.png');
+   APP.images.bolt.src = require('../assets/pantheon-logo-symbol.svg');
   },
   addListeners: function() {
     window.addEventListener('keydown', function(event) {
