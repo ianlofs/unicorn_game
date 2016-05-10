@@ -5,7 +5,9 @@
   "main": "pantheon_game.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server --inline --hot --colors"
+    "postinstall": "npm run build",
+    "build": "gulp build",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
