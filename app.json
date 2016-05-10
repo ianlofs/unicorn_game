@@ -1,0 +1,6 @@
+{
+  "name": "unicorn_game",
+  "description": "a little javascript/html5 canvas game",
+  "repository": "https://github.com/ianlofs/unicorn_game",
+  "keywords": ["node", "express", "html5", "canvas"]
+}
